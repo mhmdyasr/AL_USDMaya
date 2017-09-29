@@ -34,9 +34,9 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 ".html",
-"classAL_1_1usdmaya_1_1cmds_1_1UsdDebugCommand.html",
-"classAL_1_1usdmaya_1_1nodes_1_1ProxyShapeUI.html#a908cf6a6d0b373f02223407393f3e3a4",
-"structAL_1_1usdmaya_1_1fileio_1_1ExporterParams.html#ae5bea9439c917fcefbdcadb31854c464"
+"classAL_1_1usdmaya_1_1cmds_1_1ProxyShapeSelect.html#ab1a1858f9840485d49aeee7e2f406186",
+"classAL_1_1usdmaya_1_1nodes_1_1ProxyShapeUI.html#a3538bf02b3f209d4f76bde53f31b8910",
+"structAL_1_1usdmaya_1_1fileio_1_1ExporterParams.html#ad6d6b361fcf46a7157a9dad4e615489d"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

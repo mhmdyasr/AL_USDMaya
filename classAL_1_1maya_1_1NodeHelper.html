@@ -30,7 +30,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">AL_USDMaya
-   &#160;<span id="projectnumber">0.23.8</span>
+   &#160;<span id="projectnumber">0.23.9</span>
    </div>
    <div id="projectbrief">USD to Maya Bridge</div>
   </td>
@@ -309,6 +309,9 @@ Specify the attributes of a node, and AE GUI generation</h2></td></tr>
 <tr class="memitem:a0ab4833daa37ae01f58f36f51bc53337"><td class="memItemLeft" align="right" valign="top">static MObject&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAL_1_1maya_1_1NodeHelper.html#a0ab4833daa37ae01f58f36f51bc53337">addStringAttr</a> (const char *longName, const char *shortName, uint32_t flags, bool forceShow=false)</td></tr>
 <tr class="memdesc:a0ab4833daa37ae01f58f36f51bc53337"><td class="mdescLeft">&#160;</td><td class="mdescRight">add a new string attribute to this node type.  <a href="#a0ab4833daa37ae01f58f36f51bc53337">More...</a><br /></td></tr>
 <tr class="separator:a0ab4833daa37ae01f58f36f51bc53337"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af090892add813d601bfec087a22f1c5b"><td class="memItemLeft" align="right" valign="top">static MObject&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAL_1_1maya_1_1NodeHelper.html#af090892add813d601bfec087a22f1c5b">addStringAttr</a> (const char *longName, const char *shortName, const char *defaultValue, uint32_t flags, bool forceShow=false)</td></tr>
+<tr class="memdesc:af090892add813d601bfec087a22f1c5b"><td class="mdescLeft">&#160;</td><td class="mdescRight">add a new string attribute to this node type.  <a href="#af090892add813d601bfec087a22f1c5b">More...</a><br /></td></tr>
+<tr class="separator:af090892add813d601bfec087a22f1c5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a10a47e5d6515f18034cb24f8ed064206"><td class="memItemLeft" align="right" valign="top">static MObject&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAL_1_1maya_1_1NodeHelper.html#a10a47e5d6515f18034cb24f8ed064206">addFilePathAttr</a> (const char *longName, const char *shortName, uint32_t flags, <a class="el" href="classAL_1_1maya_1_1NodeHelper.html#a7670bef2e60ec7cf0eeb0dac168b09a1">FileMode</a> fileMode, const char *fileFilter=&quot;&quot;)</td></tr>
 <tr class="memdesc:a10a47e5d6515f18034cb24f8ed064206"><td class="mdescLeft">&#160;</td><td class="mdescRight">add a new file path attribute to this node type.  <a href="#a10a47e5d6515f18034cb24f8ed064206">More...</a><br /></td></tr>
 <tr class="separator:a10a47e5d6515f18034cb24f8ed064206"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -4005,6 +4008,71 @@ Add Dynamic Attributes to Node</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="af090892add813d601bfec087a22f1c5b"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static MObject AL::maya::NodeHelper::addStringAttr </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>longName</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>shortName</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>defaultValue</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>flags</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>forceShow</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>add a new string attribute to this node type. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">longName</td><td>long name for the attribute </td></tr>
+    <tr><td class="paramname">shortName</td><td>short name for the attribute </td></tr>
+    <tr><td class="paramname">defaultValue</td><td>default value for the attribute </td></tr>
+    <tr><td class="paramname">flags</td><td>a bitfield containing a mask of the AttributeFlags enumeration. Describes if the attribute is an input/output/etc </td></tr>
+    <tr><td class="paramname">forceShow</td><td>force attribute to be shown. Used in case attribute is not writable but needs to be shown i.e. read-only. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the MObject for the attribute </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="a817027323b016f1260c03436768e8d01"></a>
 <div class="memitem">
 <div class="memproto">
@@ -7612,7 +7680,7 @@ template&lt;typename datatype &gt; </div>
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="namespaceAL.html">AL</a></li><li class="navelem"><b>maya</b></li><li class="navelem"><a class="el" href="classAL_1_1maya_1_1NodeHelper.html">NodeHelper</a></li>
-    <li class="footer">Generated on Wed Sep 20 2017 18:43:04 for AL_USDMaya by
+    <li class="footer">Generated on Fri Sep 29 2017 14:41:59 for AL_USDMaya by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.7 </li>
   </ul>

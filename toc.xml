@@ -257,6 +257,7 @@
           <topic label="AL_DECL_ATTRIBUTE" href="classAL_1_1usdmaya_1_1nodes_1_1ProxyShape.html#ad33be147b55a99dacb636a02c862d747"/>
           <topic label="AL_DECL_ATTRIBUTE" href="classAL_1_1usdmaya_1_1nodes_1_1ProxyShape.html#a001ace1d9b298a31be415d4ebf142dfc"/>
           <topic label="AL_DECL_ATTRIBUTE" href="classAL_1_1usdmaya_1_1nodes_1_1ProxyShape.html#a257216e947a3bbba7388e759449b44c7"/>
+          <topic label="AL_DECL_ATTRIBUTE" href="classAL_1_1usdmaya_1_1nodes_1_1ProxyShape.html#ac6d7a7873d89b207e083130a36ff76c3"/>
           <topic label="AL_DECL_ATTRIBUTE" href="classAL_1_1usdmaya_1_1nodes_1_1ProxyShape.html#a89a098872742a59fe4fa4539e9b80215"/>
           <topic label="AL_DECL_ATTRIBUTE" href="classAL_1_1usdmaya_1_1nodes_1_1ProxyShape.html#a1162bf91f9d42ad872c7041489cdf62e"/>
           <topic label="AL_MAYA_DECLARE_NODE" href="classAL_1_1usdmaya_1_1nodes_1_1ProxyShape.html#af7b25d925b9d9b7c588c01ac2d090d07"/>
@@ -1240,6 +1241,7 @@
               <topic label="AL_DECL_ATTRIBUTE" href="classAL_1_1usdmaya_1_1nodes_1_1ProxyShape.html#ad33be147b55a99dacb636a02c862d747"/>
               <topic label="AL_DECL_ATTRIBUTE" href="classAL_1_1usdmaya_1_1nodes_1_1ProxyShape.html#a001ace1d9b298a31be415d4ebf142dfc"/>
               <topic label="AL_DECL_ATTRIBUTE" href="classAL_1_1usdmaya_1_1nodes_1_1ProxyShape.html#a257216e947a3bbba7388e759449b44c7"/>
+              <topic label="AL_DECL_ATTRIBUTE" href="classAL_1_1usdmaya_1_1nodes_1_1ProxyShape.html#ac6d7a7873d89b207e083130a36ff76c3"/>
               <topic label="AL_DECL_ATTRIBUTE" href="classAL_1_1usdmaya_1_1nodes_1_1ProxyShape.html#a89a098872742a59fe4fa4539e9b80215"/>
               <topic label="AL_DECL_ATTRIBUTE" href="classAL_1_1usdmaya_1_1nodes_1_1ProxyShape.html#a1162bf91f9d42ad872c7041489cdf62e"/>
               <topic label="AL_MAYA_DECLARE_NODE" href="classAL_1_1usdmaya_1_1nodes_1_1ProxyShape.html#af7b25d925b9d9b7c588c01ac2d090d07"/>
@@ -1692,6 +1694,7 @@
                 <topic label="TransformOperation.h" href="TransformOperation_8h_source.html"/>
                 <topic label="TypeIDs.h" href="TypeIDs_8h_source.html"/>
                 <topic label="Utils.h" href="Utils_8h_source.html"/>
+                <topic label="Version.h" href="Version_8h_source.html"/>
               </topic>
             </topic>
           </topic>

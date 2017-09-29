@@ -1,5 +1,7 @@
 var NAVTREEINDEX3 =
 {
+"structAL_1_1usdmaya_1_1fileio_1_1ExporterParams.html#ad6d6b361fcf46a7157a9dad4e615489d":[4,1,2,4,14],
+"structAL_1_1usdmaya_1_1fileio_1_1ExporterParams.html#ae3b2ffde5eec3b4fea509024291de840":[4,1,2,4,13],
 "structAL_1_1usdmaya_1_1fileio_1_1ExporterParams.html#ae5bea9439c917fcefbdcadb31854c464":[4,1,2,4,1],
 "structAL_1_1usdmaya_1_1fileio_1_1ImporterParams.html":[4,1,2,7],
 "structAL_1_1usdmaya_1_1fileio_1_1ImporterParams.html#a1b481bb43d4879871865267a546cc448":[4,1,2,7,8],

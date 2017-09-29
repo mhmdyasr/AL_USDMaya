@@ -109,6 +109,7 @@ var group__nodes =
       [ "AL_DECL_ATTRIBUTE", "classAL_1_1usdmaya_1_1nodes_1_1ProxyShape.html#ad33be147b55a99dacb636a02c862d747", null ],
       [ "AL_DECL_ATTRIBUTE", "classAL_1_1usdmaya_1_1nodes_1_1ProxyShape.html#a001ace1d9b298a31be415d4ebf142dfc", null ],
       [ "AL_DECL_ATTRIBUTE", "classAL_1_1usdmaya_1_1nodes_1_1ProxyShape.html#a257216e947a3bbba7388e759449b44c7", null ],
+      [ "AL_DECL_ATTRIBUTE", "classAL_1_1usdmaya_1_1nodes_1_1ProxyShape.html#ac6d7a7873d89b207e083130a36ff76c3", null ],
       [ "AL_DECL_ATTRIBUTE", "classAL_1_1usdmaya_1_1nodes_1_1ProxyShape.html#a89a098872742a59fe4fa4539e9b80215", null ],
       [ "AL_DECL_ATTRIBUTE", "classAL_1_1usdmaya_1_1nodes_1_1ProxyShape.html#a1162bf91f9d42ad872c7041489cdf62e", null ],
       [ "AL_MAYA_DECLARE_NODE", "classAL_1_1usdmaya_1_1nodes_1_1ProxyShape.html#af7b25d925b9d9b7c588c01ac2d090d07", null ],

@@ -81,6 +81,7 @@ var NAVTREEINDEX0 =
 "TypeIDs_8h_source.html":[6,0,0,0,0,0,2,13],
 "UnloadPrim_8h_source.html":[6,0,0,0,0,0,2,0,4],
 "Utils_8h_source.html":[6,0,0,0,0,0,2,14],
+"Version_8h_source.html":[6,0,0,0,0,0,2,15],
 "annotated.html":[5,0],
 "classAL_1_1maya_1_1CommandGuiHelper.html":[4,0,1,1],
 "classAL_1_1maya_1_1CommandGuiHelper.html#a0e46b2d25da1cbcc3dd684c046181b2a":[4,0,1,1,17],
@@ -248,6 +249,5 @@ var NAVTREEINDEX0 =
 "classAL_1_1usdmaya_1_1cmds_1_1ProxyShapeResync.html":[4,1,1,16],
 "classAL_1_1usdmaya_1_1cmds_1_1ProxyShapeResync.html#a1267615a226403898bf316fbc2f31a85":[4,1,1,16,0],
 "classAL_1_1usdmaya_1_1cmds_1_1ProxyShapeSelect.html":[4,1,1,17],
-"classAL_1_1usdmaya_1_1cmds_1_1ProxyShapeSelect.html#a2f1b4f7e02588e4b40adc06d4645970b":[4,1,1,17,0],
-"classAL_1_1usdmaya_1_1cmds_1_1ProxyShapeSelect.html#ab1a1858f9840485d49aeee7e2f406186":[4,1,1,17,1]
+"classAL_1_1usdmaya_1_1cmds_1_1ProxyShapeSelect.html#a2f1b4f7e02588e4b40adc06d4645970b":[4,1,1,17,0]
 };

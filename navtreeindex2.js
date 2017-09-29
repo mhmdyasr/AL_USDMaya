@@ -1,5 +1,7 @@
 var NAVTREEINDEX2 =
 {
+"classAL_1_1usdmaya_1_1nodes_1_1ProxyShapeUI.html#a3538bf02b3f209d4f76bde53f31b8910":[4,1,0,5,1],
+"classAL_1_1usdmaya_1_1nodes_1_1ProxyShapeUI.html#a4e48a5415001400cc0d1d9cb7d40295a":[4,1,0,5,0],
 "classAL_1_1usdmaya_1_1nodes_1_1ProxyShapeUI.html#a908cf6a6d0b373f02223407393f3e3a4":[4,1,0,5,2],
 "classAL_1_1usdmaya_1_1nodes_1_1ProxyShapeUI.html#aacafec2a648ad956a0bb1cb73ed2a713":[4,1,0,5,4],
 "classAL_1_1usdmaya_1_1nodes_1_1ProxyShapeUI.html#ad11a4df8056f5fa78352fbcc6d46c99e":[4,1,0,5,3],
@@ -108,8 +110,8 @@ var NAVTREEINDEX2 =
 "functions_enum.html":[5,3,4],
 "functions_eval.html":[5,3,5],
 "functions_f.html":[5,3,0,5],
-"functions_func.html":[5,3,1],
 "functions_func.html":[5,3,1,0],
+"functions_func.html":[5,3,1],
 "functions_func_b.html":[5,3,1,1],
 "functions_func_c.html":[5,3,1,2],
 "functions_func_d.html":[5,3,1,3],
@@ -247,7 +249,5 @@ var NAVTREEINDEX2 =
 "structAL_1_1usdmaya_1_1fileio_1_1ExporterParams.html#a9eed80821f6182b19f26123680cbb6bc":[4,1,2,4,12],
 "structAL_1_1usdmaya_1_1fileio_1_1ExporterParams.html#ac8e6d8c2d41f78345fdf875dd11e1c4a":[4,1,2,4,11],
 "structAL_1_1usdmaya_1_1fileio_1_1ExporterParams.html#ad2426b6290f8edeb36f455b3504665e0":[4,1,2,4,7],
-"structAL_1_1usdmaya_1_1fileio_1_1ExporterParams.html#ad4306bdaf67062fee1fcb9cbaaad42cb":[4,1,2,4,0],
-"structAL_1_1usdmaya_1_1fileio_1_1ExporterParams.html#ad6d6b361fcf46a7157a9dad4e615489d":[4,1,2,4,14],
-"structAL_1_1usdmaya_1_1fileio_1_1ExporterParams.html#ae3b2ffde5eec3b4fea509024291de840":[4,1,2,4,13]
+"structAL_1_1usdmaya_1_1fileio_1_1ExporterParams.html#ad4306bdaf67062fee1fcb9cbaaad42cb":[4,1,2,4,0]
 };
