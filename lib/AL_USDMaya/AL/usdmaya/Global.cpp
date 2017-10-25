@@ -61,7 +61,36 @@ static void preFileOpen(void*)
 {
   TF_DEBUG(ALUSDMAYA_EVENTS).Msg("preFileOpen\n");
 }
+//----------------------------------------------------------------------------------------------------------------------
+static void initialiseChildAndSublayers(nodes::Layer& layer, nodes::ProxyShape* proxy)
+{
+  // initialise self
+  MPlug plug = layer.nameOnLoadPlug();
+  MString path = plug.asString();
+  if(path.length() && path.substring(0, 3) != "anon")
+  {
+    SdfLayerHandle layerHdl = SdfLayer::FindOrOpen(path.asChar());
+    LAYER_HANDLE_CHECK(layerHdl);
+    layer.setLayerAndClearAttribute(layerHdl);
+    layer.init(proxy, layerHdl);
+  }
+  else
+  {
+    layer.init(proxy, TfNullPtr);
+  }
 
+  // recursively call to initialise children/sublayers
+  auto subLayers = layer.getSubLayers();
+  for(auto subLayer : subLayers)
+  {
+    if(subLayer) initialiseChildAndSublayers(*subLayer, proxy);
+  }
+  auto childLayers = layer.getChildLayers();
+  for(auto childLayer : childLayers)
+  {
+    if(childLayer) initialiseChildAndSublayers(*childLayer, proxy);
+  }
+}
 //----------------------------------------------------------------------------------------------------------------------
 static void postFileOpen(void*)
 {
@@ -86,29 +115,19 @@ static void postFileOpen(void*)
         if(layer)
         {
           layer->setLayerAndClearAttribute(stage->GetSessionLayer());
-        }
-      }
-    }
-  }
-  {
-    MItDependencyNodes iter(MFn::kPluginDependNode);
-    for(; !iter.isDone(); iter.next())
-    {
-      fn.setObject(iter.item());
-      if(fn.typeId() == nodes::Layer::kTypeId)
-      {
-        // now go and fix up each of the layer nodes in the scene
-        nodes::Layer* layerPtr = (nodes::Layer*)fn.userNode();
-        MPlug plug = layerPtr->nameOnLoadPlug();
-        MString path = plug.asString();
-        if(path.length() && path.substring(0, 3) != "anon")
-        {
-          SdfLayerHandle layer = SdfLayer::FindOrOpen(path.asChar());
-          LAYER_HANDLE_CHECK(layer);
-          layerPtr->setLayerAndClearAttribute(layer);
-        }
-        else
-        {
+          layer->init(proxy, stage->GetSessionLayer());
+
+          // initialise and fixup each child and sublayer
+          auto subLayers = layer->getSubLayers();
+          for(auto subLayer : subLayers)
+          {
+            if(subLayer) initialiseChildAndSublayers(*subLayer, proxy);
+          }
+          auto childLayers = layer->getChildLayers();
+          for(auto childLayer : childLayers)
+          {
+            if(childLayer) initialiseChildAndSublayers(*childLayer, proxy);
+          }
         }
       }
     }
@@ -126,6 +145,9 @@ static void postFileOpen(void*)
       }
     }
   }
+  // All layers should have been fixed up above. Do not fixup any
+  // orphaned layers as they will not have access to the proxy node/stage
+  // which makes them invalid.
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -180,4 +202,3 @@ void Global::onPluginUnload()
 } // usdmaya
 } // al
 //----------------------------------------------------------------------------------------------------------------------
-

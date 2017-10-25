@@ -807,14 +807,17 @@ void Layer::setLayerAndClearAttribute(SdfLayerHandle handle)
 void Layer::populateSerialisationAttributes()
 {
   TF_DEBUG(ALUSDMAYA_LAYERS).Msg("Layer::populateSerialisationAttributes: %s %b", m_handle->GetDisplayName().c_str(), hasBeenTheEditTarget());
-  if(hasBeenTheEditTarget() && m_handle)
+  if(m_handle)
   {
+    // always set nameOnLoad as this is necessary to initialise on file load
     nameOnLoadPlug().setValue(realPathPlug().asString());
-
-    std::string temp;
-    m_handle->ExportToString(&temp);
-    serializedPlug().setValue(convert(temp));
-    TF_DEBUG(ALUSDMAYA_LAYERS).Msg("Layer::populateSerialisationAttributes -> contents\n%s\n", temp.c_str());
+    if(hasBeenEditTarget())
+    {
+      std::string temp;
+      m_handle->ExportToString(&temp);
+      serializedPlug().setValue(convert(temp));
+      TF_DEBUG(ALUSDMAYA_LAYERS).Msg("Layer::populateSerialisationAttributes -> contents\n%s\n", temp.c_str());
+    }
   }
 }
 
