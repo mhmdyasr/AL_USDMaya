@@ -14,12 +14,13 @@
 // limitations under the License.
 //
 #pragma once
-#include "AL/usdmaya/Common.h"
 #include "AL/usdmaya/fileio/ExportParams.h"
 
 #include "maya/MPxCommand.h"
 
 #include "pxr/pxr.h"
+#include "AL/usdmaya/utils/ForwardDeclares.h"
+#include "AL/maya/utils/MayaHelperMacros.h"
 
 PXR_NAMESPACE_USING_DIRECTIVE
 
@@ -56,13 +57,18 @@ public:
   ~Export();
 
 private:
-  void exportSceneHierarchy(MDagPath path);
+  void exportSceneHierarchy(MDagPath path, SdfPath& defaultPrim);
+  void exportShapesCommonProc(MDagPath shapePath, MFnTransform& fnTransform, SdfPath& usdPath);
+  void exportShapesOnlyUVProc(MDagPath shapePath, MFnTransform& fnTransform, SdfPath& usdPath);
   UsdPrim exportMesh(MDagPath path, const SdfPath& usdPath);
+  UsdPrim exportMeshUV(MDagPath path, const SdfPath& usdPath);
   UsdPrim exportNurbsCurve(MDagPath path, const SdfPath& usdPath);
   UsdPrim exportAssembly(MDagPath path, const SdfPath& usdPath);
   UsdPrim exportPluginLocatorNode(MDagPath path, const SdfPath& usdPath);
   UsdPrim exportPluginShape(MDagPath path, const SdfPath& usdPath);
   UsdPrim exportCamera(MDagPath path, const SdfPath& usdPath);
+  void exportIkChain(MDagPath effectorPath, const SdfPath& usdPath);
+  void exportGeometryConstraint(MDagPath effectorPath, const SdfPath& usdPath);
   void copyTransformParams(UsdPrim prim, MFnTransform& fnTransform);
 
   struct Impl;

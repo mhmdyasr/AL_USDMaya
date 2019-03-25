@@ -26,6 +26,7 @@
 #include "maya/MFnTypedAttribute.h"
 #include "maya/MFnUnitAttribute.h"
 #include "maya/MGlobal.h"
+#include "maya/MFileIO.h"
 #include "maya/MMatrix.h"
 #include "maya/MFnAnimCurve.h"
 #include "maya/MFnDagNode.h"
@@ -33,6 +34,7 @@
 //----------------------------------------------------------------------------------------------------------------------
 void comparePlugs(const MPlug& plugA, const MPlug& plugB, bool usdTesting)
 {
+  SCOPED_TRACE(MString("plugA: ") + plugA.name() + " - plugB: " + plugB.name());
   EXPECT_EQ(plugA.isArray(), plugB.isArray());
   EXPECT_EQ(plugA.isElement(), plugB.isElement());
   EXPECT_EQ(plugA.isCompound(), plugB.isCompound());
@@ -680,10 +682,13 @@ void randomAnimatedNode(MObject node, const char* const attributeNames[], const 
   }
 }
 
-AL::usdmaya::nodes::ProxyShape* CreateMayaProxyShape(std::function<UsdStageRefPtr()> buildUsdStage, const std::string tempPath)
+AL::usdmaya::nodes::ProxyShape* CreateMayaProxyShape(std::function<UsdStageRefPtr()> buildUsdStage, const std::string& tempPath)
 {
-  UsdStageRefPtr stage = buildUsdStage();
-  stage->Export(tempPath, false);
+  if(buildUsdStage != nullptr)
+  {
+    UsdStageRefPtr stage = buildUsdStage();
+    stage->Export(tempPath, false);
+  }
 
   MFnDagNode fn;
   MObject xform = fn.create("transform");
@@ -692,3 +697,31 @@ AL::usdmaya::nodes::ProxyShape* CreateMayaProxyShape(std::function<UsdStageRefPt
   proxy->filePathPlug().setString(tempPath.c_str());
   return proxy;
 }
+
+AL::usdmaya::nodes::ProxyShape* CreateMayaProxyShape(const std::string& rootLayerPath)
+{
+  MFnDagNode fn;
+  MObject xform = fn.create("transform");
+  MObject shape = fn.create("AL_usdmaya_ProxyShape", xform);
+  AL::usdmaya::nodes::ProxyShape* proxy = (AL::usdmaya::nodes::ProxyShape*)fn.userNode();
+  proxy->filePathPlug().setString(rootLayerPath.c_str());
+  return proxy;
+}
+
+AL::usdmaya::nodes::ProxyShape* SetupProxyShapeWithMesh()
+{
+  MFileIO::newFile(true);
+  MGlobal::executeCommand("polySphere");
+  MString scene("/tmp/test_SceneWithMesh.usda");
+  MString command;
+  command.format("file -force -typ \"AL usdmaya export\" -pr -ea \"^1s\"", scene.asChar());
+
+  MGlobal::executeCommand(command, true);
+
+  //clear scene then create ProxyShape
+  MFileIO::newFile(true);
+  AL::usdmaya::nodes::ProxyShape* proxyShape = CreateMayaProxyShape(scene.asChar());
+  return proxyShape;
+}
+
+

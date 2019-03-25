@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 #pragma once
+#include <AL/usdmaya/ForwardDeclares.h>
 #include "AL/usdmaya/fileio/translators/DagNodeTranslator.h"
 
 #include "maya/MObject.h"
@@ -61,11 +62,19 @@ public:
 
   /// \brief  exports a mesh to the USD file and returns the created prim
   /// \param  stage  the stage in which to create the prim
-  /// \param  mayaPath  the path to the maya curve to export
+  /// \param  mayaPath  the path to the maya mesh to export
   /// \param  usdPath  the usd path where the prim should be created
   /// \param  params  the export options
   /// \return the newly created usd prim
   static UsdPrim exportObject(UsdStageRefPtr stage, MDagPath mayaPath, const SdfPath& usdPath, const ExporterParams& params);
+
+  /// \brief  exports only UV of a mesh to the USD file and returns the overridden prim
+  /// \param  stage  the stage in which to override the prim
+  /// \param  mayaPath  the path to the maya curve to export
+  /// \param  usdPath  the usd path where the prim should be created
+  /// \param  params  the export options
+  /// \return the overridden usd prim
+  static UsdPrim exportUV(UsdStageRefPtr stage, MDagPath mayaPath, const SdfPath& usdPath, const ExporterParams& params);
 
   /// \brief  import the dynamic attribute import that we are expected to see some extra subdiv animal logic only data
   ///         exported with our meshes.
@@ -73,14 +82,6 @@ public:
   /// \return true if prefixed with 'alusd_'
   bool attributeHandled(const UsdAttribute& usdAttr) override;
 };
-
-void zipUVs(const float* u, const float* v, float* uv, const size_t count);
-void unzipUVs(const float* const uv, float* const u, float* const v, const size_t count);
-void convert3DArrayTo4DArray(const float* const input, float* const output, size_t count);
-void convertFloatVec3ArrayToDoubleVec3Array(const float* const input, double* const output, size_t count);
-void interleaveIndexedUvData(float* output, const float* u, const float* v, const int32_t* indices, const uint32_t numIndices);
-bool isUvSetDataSparse(const int32_t* uvCounts, const uint32_t count);
-void generateIncrementingIndices(MIntArray& indices, const size_t count);
 
 //----------------------------------------------------------------------------------------------------------------------
 } // translators

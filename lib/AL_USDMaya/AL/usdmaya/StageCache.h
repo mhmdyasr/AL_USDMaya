@@ -13,10 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+#pragma once
 #include "pxr/pxr.h"
 #include "pxr/usd/usd/stageCache.h"
 
-#include "maya/MSceneMessage.h"
+#include "AL/maya/event/MayaEventManager.h"
 
 PXR_NAMESPACE_USING_DIRECTIVE
 
@@ -43,8 +44,8 @@ public:
   /// \brief  deletes the callbacks constructed to manage the stage cache
   static void removeCallbacks();
 private:
-  static MCallbackId beforeNewCallbackId;
-  static MCallbackId beforeLoadCallbackId;
+  static AL::event::CallbackId g_beforeNewCallbackId;
+  static AL::event::CallbackId g_beforeLoadCallbackId;
 };
 
 } // usdmaya

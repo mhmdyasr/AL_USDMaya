@@ -14,9 +14,11 @@
 // limitations under the License.
 //
 #pragma once
-#include "AL/usdmaya/Common.h"
+#include <AL/usdmaya/ForwardDeclares.h>
 #include "AL/usdmaya/AttributeType.h"
-#include "AL/maya/DgNodeHelper.h"
+#include "AL/usdmaya/utils/DgNodeHelper.h"
+#include "AL/usdmaya/utils/ForwardDeclares.h"
+#include "AL/maya/utils/MayaHelperMacros.h"
 
 #include "maya/MPlug.h"
 #include "maya/MAngle.h"
@@ -43,9 +45,10 @@ namespace translators {
 /// \ingroup   translators
 //----------------------------------------------------------------------------------------------------------------------
 class DgNodeTranslator
-  : public maya::DgNodeHelper
+  : public usdmaya::utils::DgNodeHelper
 {
 public:
+
 
   /// \brief  static type registration
   /// \return MS::kSuccess if ok
@@ -327,6 +330,12 @@ public:
   /// \param  scale a scaling factor to apply to provide support for
   /// \param  timeCode the timecode to use when setting the data
   static void copySimpleValue(const MPlug& plug, UsdAttribute& usdAttr, float scale, const UsdTimeCode& timeCode);
+
+  /// \brief  convert value from the plug specified and set it to usd attribute.
+  /// \param  plug the plug to copy the attributes value from
+  /// \param  usdAttr the USDAttribute to set the attribute value to
+  /// \return MS::kSuccess if the conversion success based on certain rules.
+  static MStatus convertSpecialValueToUSDAttribute(const MPlug& plug, UsdAttribute& usdAttr);
 };
 
 //----------------------------------------------------------------------------------------------------------------------

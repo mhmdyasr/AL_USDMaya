@@ -14,20 +14,23 @@
 // limitations under the License.
 //
 #pragma once
-#include "AL/usdmaya/Common.h"
-#include "AL/maya/NodeHelper.h"
+#include <AL/usdmaya/ForwardDeclares.h>
+#include "AL/maya/utils/NodeHelper.h"
+#include "AL/event/EventHandler.h"
+#include "AL/maya/event/MayaEventManager.h"
+#include <AL/usdmaya/SelectabilityDB.h>
 #include "AL/usdmaya/DrivenTransformsData.h"
 #include "AL/usdmaya/fileio/translators/TranslatorBase.h"
 #include "AL/usdmaya/fileio/translators/TranslatorContext.h"
 #include "AL/usdmaya/fileio/translators/TransformTranslator.h"
 #include "AL/usdmaya/nodes/proxy/PrimFilter.h"
-
 #include "maya/MPxSurfaceShape.h"
 #include "maya/MEventMessage.h"
 #include "maya/MNodeMessage.h"
 #include "maya/MPxDrawOverride.h"
 #include "maya/MEvaluationNode.h"
 #include "maya/MDagModifier.h"
+#include "maya/MObjectArray.h"
 #include "maya/MSelectionList.h"
 #include "pxr/pxr.h"
 #include "pxr/usd/usd/prim.h"
@@ -37,12 +40,24 @@
 #include "pxr/usd/usd/notice.h"
 #include "pxr/usd/sdf/notice.h"
 #include <stack>
+#include <functional>
+#include "AL/usd/utils/ForwardDeclares.h"
 
 PXR_NAMESPACE_USING_DIRECTIVE
 
 PXR_NAMESPACE_OPEN_SCOPE
 
 class UsdImagingGLHdEngine;
+
+// Note: you MUST forward declare LayerManager, and not include LayerManager.h;
+// The reason is that LayerManager.h includes MPxLocatorNode.h, which on Linux,
+// ends up bringing in Xlib.h, which has this unfortunate macro:
+//
+//    #define Bool int
+//
+// This, in turn, will cause problems if you try to use SdfValueTypeNames->Bool,
+// as in test_usdmaya_AttributeType.cpp
+class LayerManager;
 
 PXR_NAMESPACE_CLOSE_SCOPE;
 
@@ -66,12 +81,15 @@ namespace nodes {
 //----------------------------------------------------------------------------------------------------------------------
 struct SelectionUndoHelper
 {
+  /// a hash set of SdfPaths
+  typedef TfHashSet<SdfPath, SdfPath::Hash> SdfPathHashSet;
+
   /// \brief  Construct with the arguments to select / deselect nodes on a proxy shape
   /// \param  proxy pointer to the maya node on which the selection operation will be performed.
   /// \param  paths the USD paths to be selected / toggled / unselected
   /// \param  mode the selection mode (add, remove, xor, etc)
   /// \param  internal if the internal flag is set, then modifications to Maya's selection list will NOT occur.
-  SelectionUndoHelper(nodes::ProxyShape* proxy, SdfPathVector paths, MGlobal::ListAdjustment mode, bool internal = false);
+  SelectionUndoHelper(nodes::ProxyShape* proxy, const SdfPathHashSet& paths, MGlobal::ListAdjustment mode, bool internal = false);
 
   /// \brief  performs the selection changes
   void doIt();
@@ -82,8 +100,8 @@ struct SelectionUndoHelper
 private:
   friend class ProxyShape;
   nodes::ProxyShape* m_proxy;
-  SdfPathVector m_paths;
-  SdfPathVector m_previousPaths;
+  SdfPathHashSet m_paths;
+  SdfPathHashSet m_previousPaths;
   MGlobal::ListAdjustment m_mode;
   MDagModifier m_modifier1;
   MDagModifier m_modifier2;
@@ -101,6 +119,8 @@ private:
 class SelectionList
 {
 public:
+  /// a hash set of SdfPaths
+  typedef TfHashSet<SdfPath, SdfPath::Hash> SdfPathHashSet;
 
   /// \brief  default ctor
   SelectionList() = default;
@@ -120,17 +140,14 @@ public:
   /// \param  path to add
   inline void add(SdfPath path)
     {
-      if(std::find(m_selected.begin(), m_selected.end(), path) == m_selected.end())
-      {
-        m_selected.push_back(path);
-      }
+      m_selected.insert(path);
     }
 
   /// \brief  removes the path from the selection
   /// \param  path to remove
   inline void remove(SdfPath path)
     {
-      auto it = std::find(m_selected.begin(), m_selected.end(), path);
+      auto it = m_selected.find(path);
       if(it != m_selected.end())
       {
         m_selected.erase(it);
@@ -141,25 +158,21 @@ public:
   /// \param  path to toggle
   inline void toggle(SdfPath path)
     {
-      auto it = std::find(m_selected.begin(), m_selected.end(), path);
-      if(it == m_selected.end())
+      auto insertResult = m_selected.insert(path);
+      if (!insertResult.second)
       {
-        m_selected.push_back(path);
-      }
-      else
-      {
-        m_selected.erase(it);
+        m_selected.erase(insertResult.first);
       }
     }
 
   /// \brief  toggles the path in the selection
   /// \param  path to toggle
   inline bool isSelected(const SdfPath& path) const
-    { return std::find(m_selected.begin(), m_selected.end(), path) != m_selected.end(); }
+    { return m_selected.count(path) > 0; }
 
   /// \brief  the paths in the selection list
   /// \return the selected paths
-  inline const SdfPathVector& paths() const
+  inline const SdfPathHashSet& paths() const
     { return m_selected; }
 
   /// \brief  the paths in the selection list
@@ -168,9 +181,54 @@ public:
     { return m_selected.size(); }
 
 private:
-  SdfPathVector m_selected;
+  SdfPathHashSet m_selected;
 };
 
+//----------------------------------------------------------------------------------------------------------------------
+/// \brief  A class that provides the logic behind a hierarchy traversal through a UsdStage
+//----------------------------------------------------------------------------------------------------------------------
+struct  HierarchyIterationLogic
+{
+  /// \brief  ctor
+  HierarchyIterationLogic():
+      preIteration(nullptr),
+      iteration(nullptr),
+      postIteration(nullptr)
+  {}
+
+  /// \brief  provide a method to be called prior to iteration of the UsdStage hierarchy
+  std::function<void()> preIteration;
+
+  /// \brief  a visitor method that is called on each of the UsdPrims in the stage hierarchy
+  std::function<void(const fileio::TransformIterator& transformIterator,const UsdPrim& prim)> iteration;
+
+  /// \brief  provide a method to be called after iteration of the UsdStage hierarchy
+  std::function<void()> postIteration;
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+/// \brief  implements the logic that constructs a list of objects that need to be added or removed from the selectable
+///         list of prims within a UsdStage
+//----------------------------------------------------------------------------------------------------------------------
+struct FindUnselectablePrimsLogic
+  : public HierarchyIterationLogic
+{
+  SdfPathVector newUnselectables; ///< items that need to be made unselectable
+  SdfPathVector removeUnselectables; ///< items that are unselectable, but need to be made selectable
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+/// \brief  implements the logic required when searching for locked prims within a UsdStage
+//----------------------------------------------------------------------------------------------------------------------
+struct FindLockedPrimsLogic
+  : public HierarchyIterationLogic
+{
+};
+
+typedef const HierarchyIterationLogic*  HierarchyIterationLogics[3];
+
+extern AL::event::EventId kPreClearStageCache;
+extern AL::event::EventId kPostClearStageCache;
 //----------------------------------------------------------------------------------------------------------------------
 /// \brief  A custom proxy shape node that attaches itself to a USD file, and then renders it.
 ///         The stage is held internally as a member variable, and it will be composed based on a change to the
@@ -179,17 +237,29 @@ private:
 //----------------------------------------------------------------------------------------------------------------------
 class ProxyShape
   : public MPxSurfaceShape,
-    public maya::NodeHelper,
+    public AL::maya::utils::NodeHelper,
     public proxy::PrimFilterInterface,
+    public AL::event::NodeEvents,
     public TfWeakBase
 {
   friend class SelectionUndoHelper;
   friend class ProxyShapeUI;
+  friend class StageReloadGuard;
 public:
+
+  // returns the shape's parent transform
+  MDagPath parentTransform();
+
+  /// a method that registers all of the events in the ProxyShape
+  void registerEvents();
+
+  /// a set of SdfPaths
+  typedef TfHashSet<SdfPath, SdfPath::Hash> SdfPathHashSet;
 
   /// \brief  a mapping between a maya transform (or MObject::kNullObj), and the prim that exists at that location
   ///         in the DAG graph.
   typedef std::vector<std::pair<MObject, UsdPrim> > MObjectToPrim;
+  static const char* s_selectionMaskName;
 
   /// \brief  ctor
   ProxyShape();
@@ -201,24 +271,6 @@ public:
   /// \name   Type Info & Registration
   //--------------------------------------------------------------------------------------------------------------------
   AL_MAYA_DECLARE_NODE();
-
-  //--------------------------------------------------------------------------------------------------------------------
-  /// \name   Layers API
-  //--------------------------------------------------------------------------------------------------------------------
-
-  /// \brief  Locate the maya node associated with the specified layer
-  /// \param  handle the usd layer to locate
-  /// \return a pointer to the maya node that references the layer, or NULL if the layer was not found
-  Layer* findLayer(SdfLayerHandle handle);
-
-  /// \brief  Locate the name of the maya node associated with the specified layer
-  /// \param  handle the usd layer name to locate
-  /// \return the name of the maya node that references the layer, or and empty string if the layer was not found
-  MString findLayerMayaName(SdfLayerHandle handle);
-
-  /// \brief  return the node that represents the root layer
-  /// \return the root layer, or NULL if stage is invalid
-  Layer* getLayer();
 
   //--------------------------------------------------------------------------------------------------------------------
   /// \name   Input Attributes
@@ -255,9 +307,11 @@ public:
   /// Connection to any layer DG nodes
   AL_DECL_ATTRIBUTE(layers);
 
-  /// serialised session layer
-  // TODO reset if the usd file path is updated via the ui
+  /// serialised session layer (obsolete / deprecated)
   AL_DECL_ATTRIBUTE(serializedSessionLayer);
+
+  /// name of serialized session layer (on the LayerManager)
+  AL_DECL_ATTRIBUTE(sessionLayerName);
 
   /// serialised asset resolver context
   // @note currently not used
@@ -296,6 +350,12 @@ public:
   /// Version of the plugin at the time of creation (read-only)
   AL_DECL_ATTRIBUTE(version);
 
+  /// Force the outStageData to be marked dirty (write-only)
+  AL_DECL_ATTRIBUTE(stageDataDirty);
+
+  /// Excluded geometry that has been explicitly translated
+  AL_DECL_ATTRIBUTE(excludedTranslatedGeometry);
+
   //--------------------------------------------------------------------------------------------------------------------
   /// \name   Output Attributes
   //--------------------------------------------------------------------------------------------------------------------
@@ -311,9 +371,15 @@ public:
   /// \name   Public Utils
   //--------------------------------------------------------------------------------------------------------------------
 
-  /// \brief  provides access to the UsdStage that this proxy shape is currently representing
+  /// \brief  provides access to the UsdStage that this proxy shape is currently representing. This will cause a compute
+  ///         on the output stage.
   /// \return the proxy shape
   UsdStageRefPtr getUsdStage() const;
+
+  /// \brief  provides access to the UsdStage that this proxy shape is currently representing
+  /// \return the proxy shape
+  UsdStageRefPtr usdStage() const
+    { return m_stage; }
 
   /// \brief  gets hold of the attributes on this node that control the rendering in some way
   /// \param  attribs the returned set of render attributes (should be of type: UsdImagingGLEngine::RenderParams*. Hiding
@@ -408,8 +474,8 @@ public:
   /// \brief  will destroy all of the AL_usdmaya_Transform nodes from the prim specified, up to the root (unless any
   ///         of those transform nodes are in use by another imported prim).
   /// \param  usdPrim the leaf node in the chain of transforms we wish to remove
-  /// \param  modifier will store the changes as this path is constructed.
-  /// \param  reason  the reason why this path is being generated.
+  /// \param  modifier will store the changes as this path is removed.
+  /// \param  reason  the reason why this path is being removed.
   /// \todo   The mode ProxyShape::kSelection will cause the possibility of instability in the selection system.
   ///         This mode will be removed at a future date
   void removeUsdTransformChain(
@@ -420,8 +486,8 @@ public:
   /// \brief  will destroy all of the AL_usdmaya_Transform nodes from the prim specified, up to the root (unless any
   ///         of those transform nodes are in use by another imported prim).
   /// \param  path the leaf node in the chain of transforms we wish to remove
-  /// \param  modifier will store the changes as this path is constructed.
-  /// \param  reason  the reason why this path is being generated.
+  /// \param  modifier will store the changes as this path is removed.
+  /// \param  reason  the reason why this path is being removed.
   void removeUsdTransformChain(
       const SdfPath& path,
       MDagModifier& modifier,
@@ -489,12 +555,11 @@ public:
     {
       if(obj == it.second.node())
       {
-        auto iter = std::find(m_selectedPaths.cbegin(), m_selectedPaths.cend(), it.first);
-        if(iter != m_selectedPaths.cend())
+        path = it.first;
+        if(m_selectedPaths.count(it.first) > 0)
         {
           return true;
         }
-        path = it.first;
         break;
       }
     }
@@ -511,8 +576,19 @@ public:
   /// \brief  deserialises the translator context
   void deserialiseTranslatorContext();
 
+  /// \brief aggregates logic that needs to iterate through the hierarchy looking for properties/metdata on prims
+  void findTaggedPrims();
+
+  void findTaggedPrims(const HierarchyIterationLogics& iterationLogics);
+
   /// \brief  searches for the excluded geometry
   void findExcludedGeometry();
+
+  /// \brief searches for paths which are selectable
+  void findSelectablePrims();
+
+  //// \brief iterates the prim hierarchy calling pre/iterate/post like functions that are stored in the passed in objects
+  void iteratePrimHierarchy();
 
   /// \brief  returns the plugin translator registry assigned to this shape
   /// \return the translator registry
@@ -521,7 +597,7 @@ public:
 
   /// \brief  returns the plugin translator context assigned to this shape
   /// \return the translator context
-  fileio::translators::TranslatorContextPtr& context()
+  inline fileio::translators::TranslatorContextPtr& context()
     { return m_context; }
 
   //--------------------------------------------------------------------------------------------------------------------
@@ -530,14 +606,19 @@ public:
 
   /// \brief  returns the paths of the selected items within the proxy shape
   /// \return the paths of the selected prims
-  SdfPathVector& selectedPaths()
+  SdfPathHashSet& selectedPaths()
     { return m_selectedPaths; }
 
   /// \brief  Performs a selection operation on this node. Intended for use by the ProxyShapeSelect command only
   /// \param  helper provides the arguments to the selection system, and stores the internal proxy shape state
   ///         changes that need to be done/undone
+  /// \param  orderedPaths provides the original (deduplicated) input paths, in order; provided just so that the
+  ///         selection commands will return results in the same order they were provided - this is useful so that, if
+  ///         the user does, ie, "AL_usdmaya_ProxyShapeSelect -pp /foo/bar -pp /some/thing -proxy myProxyShape",
+  //          they will get as the result of the command, ["|proxyRoot|foo|bar", "|proxyRoot|some|thing"], and be able
+  //          to know what input SdfPath corresponds to what ouptut maya path
   /// \return true if the operation succeeded
-  bool doSelect(SelectionUndoHelper& helper);
+  bool doSelect(SelectionUndoHelper& helper, const SdfPathVector& orderedPaths);
 
   //--------------------------------------------------------------------------------------------------------------------
   /// \name   UsdImaging
@@ -595,7 +676,24 @@ public:
   /// \brief Re-Creates and updates the maya prim hierarchy starting from the specified primpath
   /// \param[in] primPath of the point in the hierarchy that is potentially undergoing structural changes
   /// \param[in] changedPaths are child paths that existed previously and may not be existing now.
-  void onPrimResync(SdfPath primPath, const SdfPathVector& changedPaths);
+  void onPrimResync(SdfPath primPath, SdfPathVector& changedPaths);
+
+  /// \brief Preps translators for change, and then re-ceates and updates the maya prim hierarchy below the
+  ///        specified primPath as if a variant change occurred.
+  /// \param[in] primPath of the point in the hierarchy that is potentially undergoing structural changes
+  void resync(const SdfPath& primPath);
+
+
+  // \brief Serialize information unique to this shape
+  void serialize(UsdStageRefPtr stage, LayerManager* layerManager);
+
+  // \brief Serialize all layers in proxyShapes to layerManager attributes; called before saving
+  static void serializeAll();
+
+  static inline std::vector<MObjectHandle>& GetUnloadedProxyShapes()
+  {
+    return m_unloadedProxyShapes;
+  }
 
   /// \brief This function starts the prim changed process within the proxyshape
   /// \param[in] changePath is point at which the scene is going to be modified.
@@ -628,12 +726,64 @@ public:
   inline void setChangedSelectionState(bool v)
     { m_hasChangedSelection = v; }
 
+  /// \brief Returns the SelectionDatabase owned by the ProxyShape
+  /// \return A SelectableDB owned by the ProxyShape
+  AL::usdmaya::SelectabilityDB& selectabilityDB()
+    { return m_selectabilityDB; }
+
+  /// \brief Returns the SelectionDatabase owned by the ProxyShape
+  /// \return A constant SelectableDB owned by the ProxyShape
+  const AL::usdmaya::SelectabilityDB& selectabilityDB() const
+    { return const_cast<ProxyShape*>(this)->selectabilityDB(); }
+
+  /// \brief  used to reload the stage after file open
+  void loadStage();
+
+  /// \brief  adds the attribute changed callback to the proxy shape
+  void addAttributeChangedCallback();
+
+  /// \brief  removes the attribute changed callback from the proxy shape
+  void removeAttributeChangedCallback();
+
+  void constructLockPrims();
+
+  /// \brief Translates prims at the specified paths, the operation conducted by the translator depends on
+  ///        which list you populate.
+  /// \param importPaths paths you wish to import
+  /// \param teardownPaths paths you wish to teardown
+  /// \param param are params which direct the translation of the prims
+  void translatePrimPathsIntoMaya(
+      const SdfPathVector& importPaths,
+      const SdfPathVector& teardownPaths,
+      const fileio::translators::TranslatorParameters& param = fileio::translators::TranslatorParameters());
+
+  /// \brief Translates prims at the specified paths, the operation conducted by the translator depends on
+  ///        which list you populate.
+  /// \param importPaths paths you wish to import
+  /// \param teardownPaths paths you wish to teardown
+  /// \param param are flags which direct the translation of the prims
+  void translatePrimsIntoMaya(
+      const UsdPrimVector& importPrims,
+      const SdfPathVector& teardownPrims,
+      const fileio::translators::TranslatorParameters& param = fileio::translators::TranslatorParameters());
+
+  /// \brief Breaks a comma separated string up into a SdfPath Vector
+  /// \param importPaths paths you wish to import
+  /// \param teardownPaths paths you wish to teardown
+  /// \param param are flags which direct the translation of the prims
+  SdfPathVector getPrimPathsFromCommaJoinedString(const MString &paths) const;
+
 private:
+
   static void onSelectionChanged(void* ptr);
   bool removeAllSelectedNodes(SelectionUndoHelper& helper);
   void removeTransformRefs(const std::vector<std::pair<SdfPath, MObject>>& removedRefs, TransformReason reason);
   void insertTransformRefs(const std::vector<std::pair<SdfPath, MObject>>& removedRefs, TransformReason reason);
+
   void constructExcludedPrims();
+  bool updateLockPrims(const SdfPathSet& lockTransformPrims, const SdfPathSet& lockInheritedPrims,
+                       const SdfPathSet& unlockedPrims);
+  bool lockTransformAttribute(const SdfPath& path, bool lock);
 
   MObject makeUsdTransformChain_internal(
       const UsdPrim& usdPrim,
@@ -708,7 +858,6 @@ private:
     };
   };
 
-
   /// if the USD stage contains a maya reference et-al, then we have a set of *REQUIRED* AL::usdmaya::nodes::Transform nodes.
   /// If we then later create a USD transform node (because we're bringing in all of them, or just a selection of them),
   /// then we must make sure that we don't end up duplicating paths. This map is use to store a LUT of the paths that
@@ -761,16 +910,16 @@ private:
   UsdPrim getUsdPrim(MDataBlock& dataBlock) const;
   SdfPathVector getExcludePrimPaths() const;
   UsdStagePopulationMask constructStagePopulationMask(const MString &paths) const;
-  SdfPathVector getPrimPathsFromCommaJoinedString(const MString &paths) const;
+
   bool isStageValid() const;
   bool primHasExcludedParent(UsdPrim prim);
   bool initPrim(const uint32_t index, MDGContext& ctx);
 
-  void reloadStage(MPlug& plug);
   void layerIdChanged(SdfNotice::LayerIdentifierDidChange const& notice, UsdStageWeakPtr const& sender);
   void onObjectsChanged(UsdNotice::ObjectsChanged const&, UsdStageWeakPtr const& sender);
-  void variantSelectionListener(SdfNotice::LayersDidChange const& notice, UsdStageWeakPtr const& sender);
+  void variantSelectionListener(SdfNotice::LayersDidChange const& notice);
   void onEditTargetChanged(UsdNotice::StageEditTargetChanged const& notice, UsdStageWeakPtr const& sender);
+  void trackEditTargetLayer(LayerManager* layerManager=nullptr);
   static void onAttributeChanged(MNodeMessage::AttributeMessage, MPlug&, MPlug&, void*);
   void validateTransforms();
 
@@ -790,8 +939,16 @@ private:
     }
 
 private:
+  SdfPathVector m_pathsOrdered;
+  static std::vector<MObjectHandle> m_unloadedProxyShapes;
+
+  AL::usdmaya::SelectabilityDB m_selectabilityDB;
+  HierarchyIterationLogics m_hierarchyIterationLogics;
+  HierarchyIterationLogic m_findExcludedPrims;
   SelectionList m_selectionList;
-  SdfPathVector m_selectedPaths;
+  FindUnselectablePrimsLogic m_findUnselectablePrims;
+  SdfPathHashSet m_selectedPaths;
+  FindLockedPrimsLogic m_findLockedPrims;
   std::vector<SdfPath> m_paths;
   std::vector<UsdPrim> m_prims;
   TfNotice::Key m_objectsChangedNoticeKey;
@@ -799,18 +956,26 @@ private:
   TfNotice::Key m_editTargetChanged;
 
   mutable std::map<UsdTimeCode, MBoundingBox> m_boundingBoxCache;
-  MCallbackId m_beforeSaveSceneId;
-  MCallbackId m_attributeChanged;
-  MCallbackId m_onSelectionChanged;
+  AL::event::CallbackId m_beforeSaveSceneId = -1;
+  MCallbackId m_attributeChanged = -1;
+  MCallbackId m_onSelectionChanged = -1;
   SdfPathVector m_excludedGeometry;
   SdfPathVector m_excludedTaggedGeometry;
+  SdfPathSet m_lockTransformPrims;
+  SdfPathSet m_lockInheritedPrims;
+  SdfPathSet m_currentLockedPrims;
+  static MObject m_transformTranslate;
+  static MObject m_transformRotate;
+  static MObject m_transformScale;
   UsdStageRefPtr m_stage;
   SdfPath m_path;
   fileio::translators::TranslatorContextPtr m_context;
   fileio::translators::TranslatorManufacture m_translatorManufacture;
   SdfPath m_changedPath;
   SdfPathVector m_variantSwitchedPrims;
+  SdfLayerHandle m_prevTargetLayer;
   UsdImagingGLHdEngine* m_engine = 0;
+
   uint32_t m_engineRefCount = 0;
   bool m_compositionHasChanged = false;
   bool m_drivenTransformsDirty = false;
